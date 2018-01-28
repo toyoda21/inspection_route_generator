@@ -11,6 +11,15 @@
 #include <mavros_msgs/SetMode.h>
 #include <mavros_msgs/State.h>
 #include "inspection_route/guidance.h"
+#include "aruco_msgs/Marker.h"//マーカ情報取得に必要な変数がパッケージ独自のため引用
+#include "aruco_msgs/MarkerArray.h"//マーカ情報取得に必要な変数がパッケージ独自のため引用
+#include <nav_msgs/Odometry.h>
+#include <geometry_msgs/PoseWithCovariance.h>
+
+int state = 0;
+bool offb_flag = false;
+bool arm_flag = false;
+int task;
 
 //autopilotの現在の状態を保存するコールバックを作成する
 //接続・アーム・オフボードフラグを確認する
@@ -23,6 +32,46 @@ void state_cb(const mavros_msgs::State::ConstPtr& msg){
 geometry_msgs::PoseStamped current_pose;
 void pose_cb(const geometry_msgs::PoseStamped::ConstPtr& pose_msg){
     current_pose = *pose_msg;
+}
+
+//マーカ検出
+aruco_msgs::Marker marker_data;
+geometry_msgs::PoseStamped fixation_pose;
+geometry_msgs::PoseStamped current_target_pose;
+void marker_cb(const aruco_msgs::MarkerArray::ConstPtr& mk_msg){
+    if(state == 0){
+	  state = 1;
+      marker_data.id = mk_msg->markers[0].id;
+	  marker_data.pose.pose.position.x = mk_msg->markers[0].pose.pose.position.x;
+	  marker_data.pose.pose.position.y = mk_msg->markers[0].pose.pose.position.y;
+	  marker_data.pose.pose.position.z = mk_msg->markers[0].pose.pose.position.z;
+	  
+	  fixation_pose.pose.position.x = current_target_pose.pose.position.x;
+	  fixation_pose.pose.position.y = current_target_pose.pose.position.y;
+	  fixation_pose.pose.position.z = 1.5;
+	  fixation_pose.pose.orientation.w = 0;
+	  fixation_pose.pose.orientation.x = 0;
+	  fixation_pose.pose.orientation.y = 0;
+	  fixation_pose.pose.orientation.z = 0;
+	  
+      if(marker_data.id == 2){
+		task = 3;//task1~2
+		ROS_INFO("ID:2");
+	  }
+	  if(marker_data.id == 26){
+		task = 3;//task1~2
+		ROS_INFO("ID:26");
+	  }
+      if(marker_data.id == 110){
+		task = 3;//task1~2
+		ROS_INFO("ID:110");
+	  }
+	  if(marker_data.id == 1000){
+		task = 3;//task1~2
+		ROS_INFO("ID:1000");
+	  }
+    }
+	
 }
 
 int main(int argc, char **argv)
@@ -44,31 +93,13 @@ int main(int argc, char **argv)
             ("mavros/local_position/pose", 10, pose_cb);
     ros::Publisher local_pos_pub = nh.advertise<geometry_msgs::PoseStamped>
             ("mavros/setpoint_position/local", 10);
-    
+    ros::Subscriber marker_sub = nh.subscribe<aruco_msgs::MarkerArray>
+            ("aruco_marker_publisher/markers", 5, marker_cb);
     //the setpoint publishing rate MUST be faster than 2Hz
     ros::Rate rate(20.0);
 
     geometry_msgs::PoseStamped pose;
-    geometry_msgs::PoseStamped change_mode_pose;
-    pose.pose.position.x = change_mode_pose.pose.position.x;
-    pose.pose.position.y = change_mode_pose.pose.position.y;
-    pose.pose.position.z = 0.8;
-    pose.pose.orientation.w = change_mode_pose.pose.orientation.w;
-    pose.pose.orientation.x = change_mode_pose.pose.orientation.x;
-    pose.pose.orientation.y = change_mode_pose.pose.orientation.y;
-    pose.pose.orientation.z = change_mode_pose.pose.orientation.z;
     geometry_msgs::Twist twist;
-    twist.linear.x = 0;
-    twist.linear.y = 0;
-    twist.linear.z = 0;
-
-    //send a few setpoints before starting
-    //オフボードモードに入る前にsetpointのストリーミングを開始する
-    //for(int i = 100; ros::ok() && i > 0; --i){
-    //    local_vel_pub.publish(twist);
-    //    ros::spinOnce();
-    //    rate.sleep();
-    //}
 
     //オフボードモードに設定する
     mavros_msgs::SetMode offb_set_mode;
@@ -77,72 +108,54 @@ int main(int argc, char **argv)
     //アームコマンドを送信する
     mavros_msgs::CommandBool arm_cmd;
     arm_cmd.request.value = true;
-    
-    int state = 0;
-    bool offb_flag = false;
-    bool arm_flag = false;
-    /*while (ros::ok() && !offb_flag){
-        if( current_state.mode != "OFFBOARD" &&
-            (ros::Time::now() - last_request > ros::Duration(1.0))){//サービスコールは5s間隔で送る
-            if( set_mode_client.call(offb_set_mode) &&
-                offb_set_mode.response.mode_sent){
-                ROS_INFO("Offboard enabled");//offbが有効になっていたら表示される
-                offb_flag = true;
-            }
-            last_request = ros::Time::now();
-        }
-        ros::spinOnce();
-        rate.sleep();
-    }
-    while (ros::ok() && !arm_flag){
-        if( !current_state.armed &&
-            (ros::Time::now() - last_request > ros::Duration(1.0))){
-            if( arming_client.call(arm_cmd) &&
-                arm_cmd.response.success){
-            ROS_INFO("Vehicle armed");//armコマンドを受け取ったら表示される
-            arm_flag = true;
-                }
-            last_request = ros::Time::now();
-        }
-        ros::spinOnce();
-        rate.sleep();
-    }//OFFBOARDモード後armしていることを確認*/
 
     // wait for OFFBOARD mode connection
     while(ros::ok() && current_state.mode != "OFFBOARD"){
-        ROS_INFO("Waiting ...");
+	ROS_INFO("Waiting ...AAA");
         pose.pose.position.x = 0;
         pose.pose.position.y = 0;
         pose.pose.position.z = 0.8;
-        pose.pose.orientation.w = 1;
+        pose.pose.orientation.w = 0;
         pose.pose.orientation.x = 0;
         pose.pose.orientation.y = 0;
         pose.pose.orientation.z = 0;
         local_pos_pub.publish(pose);
-        ros::spinOnce();
+		ros::spinOnce();
         rate.sleep();
-        //現在地の取り込み
-        change_mode_pose = current_pose;
-    }
-
-    ROS_INFO("Start offboard mode!");
+	}
+	ROS_INFO("Start offboard mode!");
     
     //main loop
-    ros::Time start_request = ros::Time::now();
+    //geometry_msgs::PoseStamped current_target_pose;
+    double start_request;
+	double now_request;
+	bool timer = false;
     while (ros::ok()){
-        if(state < 7){
-            if(fabs(pose.pose.position.x - current_pose.pose.position.x) < 0.1
-            && fabs(pose.pose.position.y - current_pose.pose.position.y) < 0.1
-            && fabs(pose.pose.position.z - current_pose.pose.position.z) < 0.1 ){
-                ros::Time now_request = ros::Time::now();
-                if(now_request-start_request > ros::Duration(5.0)){
-                    state++;
-                    start_request = ros::Time::now();}}
-        }else{state = 0;}
-        pose = guidance_position(state, change_mode_pose);
-        local_pos_pub.publish(pose);
-        ros::spinOnce();
-        rate.sleep();
+	  if(state < task && state > 0){
+		if(   fabs(pose.pose.position.x - current_pose.pose.position.x) < 0.08
+		   && fabs(pose.pose.position.y - current_pose.pose.position.y) < 0.08
+		   && fabs(pose.pose.position.z - current_pose.pose.position.z) < 0.08
+			   ){
+			  if(timer == false ){
+			    start_request = ros::Time::now().toSec();
+				timer = true;
+			  }else{
+				now_request = ros::Time::now().toSec();
+                if(now_request - start_request > 10.0){
+                  state++;
+                  timer = false;
+				  ROS_INFO("next state");
+				}
+			  }
+		    }
+			pose = guidance_marker_route(state, current_target_pose, marker_data, fixation_pose);
+	  }else{state = 0;
+        pose = guidance_marker_route(state, current_target_pose, marker_data, fixation_pose);
+	  }
+	  current_target_pose = pose;
+	  local_pos_pub.publish(pose);
+	  ros::spinOnce();
+	  rate.sleep();
     }
 
     return 0;
