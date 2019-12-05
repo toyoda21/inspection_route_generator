@@ -43,19 +43,19 @@ int main(int argc, char **argv)
             ("mavros/local_position/pose", 10, pose_cb);
     ros::Publisher local_pos_pub = nh.advertise<geometry_msgs::PoseStamped>
             ("mavros/setpoint_position/local", 10);
-
+    
     //the setpoint publishing rate MUST be faster than 2Hz
     ros::Rate rate(20.0);
 
-    // wait for FCU connection
-    //while(ros::ok() && !current_state.connected){
-    //    ros::spinOnce();
-    //    rate.sleep();
-    //}
     geometry_msgs::PoseStamped pose;
-    pose.pose.position.x = 0;
-    pose.pose.position.y = 0;
-    pose.pose.position.z = 3;
+    geometry_msgs::PoseStamped change_mode_pose;
+    pose.pose.position.x = change_mode_pose.pose.position.x;
+    pose.pose.position.y = change_mode_pose.pose.position.y;
+    pose.pose.position.z = 2;
+    pose.pose.orientation.w = change_mode_pose.pose.orientation.w;
+    pose.pose.orientation.x = change_mode_pose.pose.orientation.x;
+    pose.pose.orientation.y = change_mode_pose.pose.orientation.y;
+    pose.pose.orientation.z = change_mode_pose.pose.orientation.z;
     geometry_msgs::Twist twist;
     twist.linear.x = 0;
     twist.linear.y = 0;
@@ -63,11 +63,11 @@ int main(int argc, char **argv)
 
     //send a few setpoints before starting
     //オフボードモードに入る前にsetpointのストリーミングを開始する
-    for(int i = 100; ros::ok() && i > 0; --i){
-        local_vel_pub.publish(twist);
-        ros::spinOnce();
-        rate.sleep();
-    }
+    //for(int i = 100; ros::ok() && i > 0; --i){
+    //    local_vel_pub.publish(twist);
+    //    ros::spinOnce();
+    //    rate.sleep();
+    //}
 
     //オフボードモードに設定する
     mavros_msgs::SetMode offb_set_mode;
@@ -108,15 +108,34 @@ int main(int argc, char **argv)
         ros::spinOnce();
         rate.sleep();
     }//OFFBOARDモード後armしていることを確認*/
+
+    // wait for OFFBOARD mode connection
+    while(ros::ok() && current_state.mode != "OFFBOARD"){
+        ROS_INFO("Waiting ...");
+        pose.pose.position.x = current_pose.pose.position.x;
+        pose.pose.position.y = current_pose.pose.position.y;
+        pose.pose.position.z = 2;
+        pose.pose.orientation.w = current_pose.pose.orientation.w;
+        pose.pose.orientation.x = current_pose.pose.orientation.x;
+        pose.pose.orientation.y = current_pose.pose.orientation.y;
+        pose.pose.orientation.z = current_pose.pose.orientation.z;
+        local_pos_pub.publish(pose);
+        ros::spinOnce();
+        rate.sleep();
+        //現在地の取り込み
+        change_mode_pose = current_pose;
+    }
+    ROS_INFO("Start offboard mode!");
     
+    //main loop
     ros::Time set_request = ros::Time::now();
     while (ros::ok()){
         if(state < 7){
-            if(fabs(pose.pose.position.x - current_pose.pose.position.x) < 0.1
-            && fabs(pose.pose.position.y - current_pose.pose.position.y) < 0.1
-            && fabs(pose.pose.position.z - current_pose.pose.position.z) < 0.1 ){state++;}
+            if(fabs(pose.pose.position.x - current_pose.pose.position.x) < 0.5
+            && fabs(pose.pose.position.y - current_pose.pose.position.y) < 0.5
+            && fabs(pose.pose.position.z - current_pose.pose.position.z) < 0.5 ){state++;}
         }else{state = 0;}
-        pose = guidance_position(state);
+        pose = guidance_position(state, change_mode_pose);
         local_pos_pub.publish(pose);
         ros::spinOnce();
         rate.sleep();

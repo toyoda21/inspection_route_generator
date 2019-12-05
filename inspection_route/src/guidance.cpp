@@ -7,7 +7,7 @@
 #include <mavros_msgs/SetMode.h>
 #include <mavros_msgs/State.h>
 
-geometry_msgs::Twist guidance_velocity(int state){
+geometry_msgs::Twist guidance_velocity(int state, geometry_msgs::PoseStamped change_mode_pose){
     geometry_msgs::Twist twist;
     if( state == 0 ){
         twist.linear.x = 0;
@@ -42,35 +42,35 @@ insp_pose.pose.position.x = 0;
 insp_pose.pose.position.y = 0;
 insp_pose.pose.position.z = 2;
 */
-geometry_msgs::PoseStamped guidance_position(int state){
+geometry_msgs::PoseStamped guidance_position(int state, geometry_msgs::PoseStamped change_mode_pose){
     geometry_msgs::PoseStamped insp_pose;
     if( state == 0 ){
-        insp_pose.pose.position.x = 0;
-        insp_pose.pose.position.y = 0;
+        insp_pose.pose.position.x = 0 + change_mode_pose.pose.position.x;
+        insp_pose.pose.position.y = 0 + change_mode_pose.pose.position.y;
         insp_pose.pose.position.z = 2;
     }else if( state == 1 ){
-        insp_pose.pose.position.x = 0;
-        insp_pose.pose.position.y = 0;
+        insp_pose.pose.position.x = 0 + change_mode_pose.pose.position.x;
+        insp_pose.pose.position.y = 0 + change_mode_pose.pose.position.y;
         insp_pose.pose.position.z = 2;
     }else if( state == 2 ){
-        insp_pose.pose.position.x = 2;
-        insp_pose.pose.position.y = 0;
+        insp_pose.pose.position.x = 2 + change_mode_pose.pose.position.x;
+        insp_pose.pose.position.y = 0 + change_mode_pose.pose.position.y;
         insp_pose.pose.position.z = 2;
     }else if( state == 3 ){
-        insp_pose.pose.position.x = 2;
-        insp_pose.pose.position.y = 0;
+        insp_pose.pose.position.x = 2 + change_mode_pose.pose.position.x;
+        insp_pose.pose.position.y = 0 + change_mode_pose.pose.position.y;
         insp_pose.pose.position.z = 3;
     }else if( state == 4 ){
-        insp_pose.pose.position.x = 2;
-        insp_pose.pose.position.y = 2;
+        insp_pose.pose.position.x = 2 + change_mode_pose.pose.position.x;
+        insp_pose.pose.position.y = 2 + change_mode_pose.pose.position.y;
         insp_pose.pose.position.z = 3;
     }else if( state == 5){
-        insp_pose.pose.position.x = 2;
-        insp_pose.pose.position.y = 2;
+        insp_pose.pose.position.x = 2 + change_mode_pose.pose.position.x;
+        insp_pose.pose.position.y = 2 + change_mode_pose.pose.position.y;
         insp_pose.pose.position.z = 2;
     }else if( state == 6 ){
-        insp_pose.pose.position.x = 0;
-        insp_pose.pose.position.y = 2;
+        insp_pose.pose.position.x = 0 + change_mode_pose.pose.position.x;
+        insp_pose.pose.position.y = 2 + change_mode_pose.pose.position.y;
         insp_pose.pose.position.z = 2;
     }else{}
     return insp_pose;
