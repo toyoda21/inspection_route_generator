@@ -12,7 +12,7 @@ geometry_msgs::Twist guidance_velocity(int state, geometry_msgs::PoseStamped cha
     if( state == 0 ){
         twist.linear.x = 0;
         twist.linear.y = 0;
-        twist.linear.x = 0;
+        twist.linear.z = 0;
         }
     if ( state == 1 ){
         twist.linear.x = 0;
@@ -22,12 +22,12 @@ geometry_msgs::Twist guidance_velocity(int state, geometry_msgs::PoseStamped cha
     if ( state == 2 ){
         twist.linear.x = 0;
         twist.linear.y = 1;
-        twist.linear.x = 1;
+        twist.linear.z = 1;
     }
     if( state == 3 ){
         twist.linear.x = -1;
         twist.linear.y = 0;
-        twist.linear.x = 1;
+        twist.linear.z = 1;
     }
     if( state == 4 ){
         twist.linear.x = 0;
@@ -45,38 +45,38 @@ insp_pose.pose.position.z = 2;
 geometry_msgs::PoseStamped guidance_position(int state, geometry_msgs::PoseStamped change_mode_pose){
     geometry_msgs::PoseStamped insp_pose;
     if( state == 0 ){
-        insp_pose.pose.position.x = 0;
-        insp_pose.pose.position.y = 0;
-        insp_pose.pose.position.z = 0.8;
+        insp_pose.pose.position.x = 3 + change_mode_pose.pose.position.x;
+        insp_pose.pose.position.y = 0 + change_mode_pose.pose.position.y;
+        insp_pose.pose.position.z = 2;
     }else if( state == 1 ){
-        insp_pose.pose.position.x = 0;
-        insp_pose.pose.position.y = 0;
-        insp_pose.pose.position.z = 0.8;
+        insp_pose.pose.position.x = 3 + change_mode_pose.pose.position.x;
+        insp_pose.pose.position.y = 0 + change_mode_pose.pose.position.y;
+        insp_pose.pose.position.z = 2;
     }else if( state == 2 ){
-        insp_pose.pose.position.x = 0.5;
-        insp_pose.pose.position.y = 0;
-        insp_pose.pose.position.z = 0.8;
+        insp_pose.pose.position.x = 3 + change_mode_pose.pose.position.x;
+        insp_pose.pose.position.y = 0 + change_mode_pose.pose.position.y;
+        insp_pose.pose.position.z = 2;
     }else if( state == 3 ){
-        insp_pose.pose.position.x = 0.5;
-        insp_pose.pose.position.y = 0;
-        insp_pose.pose.position.z = 1.0;
+        insp_pose.pose.position.x = 2 + change_mode_pose.pose.position.x;
+        insp_pose.pose.position.y = 0 + change_mode_pose.pose.position.y;
+        insp_pose.pose.position.z = 3;
     }else if( state == 4 ){
-        insp_pose.pose.position.x = 0.5;
-        insp_pose.pose.position.y = 0.5;
-        insp_pose.pose.position.z = 1;
+        insp_pose.pose.position.x = 2 + change_mode_pose.pose.position.x;
+        insp_pose.pose.position.y = 2 + change_mode_pose.pose.position.y;
+        insp_pose.pose.position.z = 3;
     }else if( state == 5){
-        insp_pose.pose.position.x = 0.5;
-        insp_pose.pose.position.y = 0.5;
-        insp_pose.pose.position.z = 0.8;
+        insp_pose.pose.position.x = 2 + change_mode_pose.pose.position.x;
+        insp_pose.pose.position.y = 2 + change_mode_pose.pose.position.y;
+        insp_pose.pose.position.z = 2;
     }else if( state == 6 ){
-        insp_pose.pose.position.x = 0;
-        insp_pose.pose.position.y = 0.5;
-        insp_pose.pose.position.z = 0.8;
+        insp_pose.pose.position.x = 0 + change_mode_pose.pose.position.x;
+        insp_pose.pose.position.y = 2 + change_mode_pose.pose.position.y;
+        insp_pose.pose.position.z = 2;
     }else{}
-        insp_pose.pose.orientation.w = 1;
-        insp_pose.pose.orientation.x = 0;
-        insp_pose.pose.orientation.y = 0;
-        insp_pose.pose.orientation.z = 0;
+    insp_pose.pose.orientation.w = change_mode_pose.pose.orientation.w;
+    insp_pose.pose.orientation.x = change_mode_pose.pose.orientation.x;
+    insp_pose.pose.orientation.y = change_mode_pose.pose.orientation.y;
+    insp_pose.pose.orientation.z = change_mode_pose.pose.orientation.z;
     return insp_pose;
 }
 //circle route

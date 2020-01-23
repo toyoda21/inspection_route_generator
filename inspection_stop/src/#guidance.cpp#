@@ -1,0 +1,39 @@
+#include "inspection_route/guidance.h"
+
+#include <ros/ros.h>
+#include <geometry_msgs/PoseStamped.h>
+#inculde <geometry_msgs/Twist.h>
+#include <mavros_msgs/CommandBool.h>
+#include <mavros_msgs/SetMode.h>
+#include <mavros_msgs/State.h>
+
+geometry_msgs::PoseStamped guidance_position(int state){
+    geometry_msgs::PoseStamped pose;
+    if( state == 0 ){
+        pose.pose.position.x = 0;
+        pose.pose.position.y = 0;
+        pose.pose.position.z = 0;
+    }
+    if ( state == 1 ){
+        pose.pose.position.x = 2;
+        pose.pose.position.y = 0;
+        pose.pose.position.z = 0;
+    }
+    if ( state == 2 ){
+        pose.pose.position.x = 2;
+        pose.pose.position.y = 0;
+        pose.pose.position.z = 0;
+    }
+    if( state == 3 ){
+        pose.pose.position.x = 2;
+        pose.pose.position.y = 0;
+        pose.pose.position.z = 0;
+    }
+    if( state == 4 ){
+        pose.pose.position.x = 0;
+        pose.pose.position.y = 2;
+        pose.pose.position.z = 0;
+    }
+
+    return pose;
+}

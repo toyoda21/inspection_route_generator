@@ -18,7 +18,6 @@ mavros_msgs::State current_state;
 void state_cb(const mavros_msgs::State::ConstPtr& msg){
     current_state = *msg;
 }
-
 //現在のlocal poseを保存するコールバックを作成する
 geometry_msgs::PoseStamped current_pose;
 void pose_cb(const geometry_msgs::PoseStamped::ConstPtr& pose_msg){
@@ -52,7 +51,7 @@ int main(int argc, char **argv)
     geometry_msgs::PoseStamped change_mode_pose;
     pose.pose.position.x = change_mode_pose.pose.position.x;
     pose.pose.position.y = change_mode_pose.pose.position.y;
-    pose.pose.position.z = 0.8;
+    pose.pose.position.z = 2;
     pose.pose.orientation.w = change_mode_pose.pose.orientation.w;
     pose.pose.orientation.x = change_mode_pose.pose.orientation.x;
     pose.pose.orientation.y = change_mode_pose.pose.orientation.y;
@@ -77,6 +76,8 @@ int main(int argc, char **argv)
     //アームコマンドを送信する
     mavros_msgs::CommandBool arm_cmd;
     arm_cmd.request.value = true;
+
+    ros::Time last_request = ros::Time::now();
     
     int state = 0;
     bool offb_flag = false;
@@ -111,33 +112,28 @@ int main(int argc, char **argv)
     // wait for OFFBOARD mode connection
     while(ros::ok() && current_state.mode != "OFFBOARD"){
         ROS_INFO("Waiting ...");
-        pose.pose.position.x = 0;
-        pose.pose.position.y = 0;
-        pose.pose.position.z = 0.8;
-        pose.pose.orientation.w = 1;
-        pose.pose.orientation.x = 0;
-        pose.pose.orientation.y = 0;
-        pose.pose.orientation.z = 0;
+        pose.pose.position.x = current_pose.pose.position.x;
+        pose.pose.position.y = current_pose.pose.position.y;
+        pose.pose.position.z = 2;
+        pose.pose.orientation.w = current_pose.pose.orientation.w;
+        pose.pose.orientation.x = current_pose.pose.orientation.x;
+        pose.pose.orientation.y = current_pose.pose.orientation.y;
+        pose.pose.orientation.z = current_pose.pose.orientation.z;
         local_pos_pub.publish(pose);
         ros::spinOnce();
         rate.sleep();
         //現在地の取り込み
         change_mode_pose = current_pose;
     }
-
     ROS_INFO("Start offboard mode!");
     
     //main loop
-    ros::Time start_request = ros::Time::now();
+    ros::Time set_request = ros::Time::now();
     while (ros::ok()){
-        if(state < 7){
+        if(state < 1){
             if(fabs(pose.pose.position.x - current_pose.pose.position.x) < 0.1
             && fabs(pose.pose.position.y - current_pose.pose.position.y) < 0.1
-            && fabs(pose.pose.position.z - current_pose.pose.position.z) < 0.1 ){
-                ros::Time now_request = ros::Time::now();
-                if(now_request-start_request > ros::Duration(5.0)){
-                    state++;
-                    start_request = ros::Time::now();}}
+            && fabs(pose.pose.position.z - current_pose.pose.position.z) < 0.1 ){state++;}
         }else{state = 0;}
         pose = guidance_position(state, change_mode_pose);
         local_pos_pub.publish(pose);

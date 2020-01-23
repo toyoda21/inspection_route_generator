@@ -7,15 +7,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
 )
 
-###################################
-## catkin specific configuration ##
-###################################
-
 catkin_package()
-
-###########
-## Build ##
-###########
 
 ## Build talker and listener
 include_directories(include ${catkin_INCLUDE_DIRS})
